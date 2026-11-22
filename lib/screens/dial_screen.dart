@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../main.dart';
 import '../models/station.dart';
 import '../services/background_permissions.dart';
+import '../services/update_service.dart';
 import '../theme.dart';
 import '../widgets/station_tile.dart';
 import 'stations_screen.dart';
@@ -55,7 +56,7 @@ class _DialScreenState extends State<DialScreen>
       _checkedUpdate = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        await BackgroundPermissions.ensure(context);
+        await BackgroundPermissions.ensure();
         if (mounted) updateService.check(context, silent: true);
       });
     }
@@ -644,6 +645,7 @@ class _MenuButton extends StatelessWidget {
         themeItem(ThemeMode.light, Icons.light_mode_rounded, 'فاتح'),
         themeItem(ThemeMode.dark, Icons.dark_mode_rounded, 'غامق'),
         const PopupMenuDivider(),
+        if (!UpdateService.isPlayBuild)
         PopupMenuItem(
           value: 'update',
           child: Row(children: [

@@ -48,16 +48,21 @@ jobs:
             echo "::warning::DEBUG_KEYSTORE_B64 secret not set - APK will get a random key"
           fi
 
-      - name: Build release APK
+      - name: Build APK (GitHub) and AAB (Google Play)
         working-directory: ${{ runner.temp }}/radio_app
         run: |
-          flutter build apk --release --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }}
+          V="--build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }}"
+          flutter build apk --release $V --dart-define=STORE=github
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/radio.apk
+          flutter build appbundle --release $V --dart-define=STORE=play
+          cp build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/radio-play.aab
 
       - uses: actions/upload-artifact@v4
         with:
-          name: radio-apk
-          path: ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/app-release.apk
+          name: radio-builds
+          path: |
+            ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/radio.apk
+            ${{ runner.temp }}/radio_app/build/app/outputs/bundle/release/radio-play.aab
 
       - name: Publish release (download link for the phone)
         uses: softprops/action-gh-release@v2
@@ -65,4 +70,6 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Radio build ${{ github.run_number }}
           make_latest: true
-          files: ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/radio.apk
+          files: |
+            ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/radio.apk
+            ${{ runner.temp }}/radio_app/build/app/outputs/bundle/release/radio-play.aab

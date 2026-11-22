@@ -12,6 +12,10 @@ import '../theme.dart';
 class UpdateService {
   static const repo = 'em07amed/radio';
 
+  /// Set with --dart-define=STORE=play for the Google Play build.
+  /// Play updates the app itself, so in-app updating is disabled there.
+  static const isPlayBuild = String.fromEnvironment('STORE') == 'play';
+
   int? currentBuild;
   String? currentVersion;
 
@@ -45,6 +49,7 @@ class UpdateService {
 
   /// [silent]: on app start — only speak up when an update exists.
   Future<void> check(BuildContext context, {bool silent = false}) async {
+    if (isPlayBuild) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
       final latest = await _latest();
