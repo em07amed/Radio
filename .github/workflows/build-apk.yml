@@ -36,6 +36,18 @@ jobs:
           cd "$APP"
           flutter pub add just_audio audio_service http shared_preferences cached_network_image package_info_plus url_launcher
 
+      - name: Use fixed signing key (so updates install over the old app)
+        env:
+          KS: ${{ secrets.DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            mkdir -p ~/.android
+            echo "$KS" | base64 -d > ~/.android/debug.keystore
+            echo "Fixed signing key installed"
+          else
+            echo "::warning::DEBUG_KEYSTORE_B64 secret not set - APK will get a random key"
+          fi
+
       - name: Build release APK
         working-directory: ${{ runner.temp }}/radio_app
         run: |
