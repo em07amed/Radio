@@ -12,6 +12,7 @@ import '../services/background_permissions.dart';
 import '../theme.dart';
 import '../widgets/station_tile.dart';
 import 'stations_screen.dart';
+import 'diagnostics_screen.dart';
 
 /// Main screen: big frequency readout + a curved tuning dial.
 /// Drag the dial to move between stations; it snaps and plays.
@@ -633,6 +634,9 @@ class _MenuButton extends StatelessWidget {
             themeController.set(ThemeMode.dark);
           case 'update':
             updateService.check(context);
+          case 'diag':
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const DiagnosticsScreen()));
         }
       },
       itemBuilder: (_) => [
@@ -646,6 +650,14 @@ class _MenuButton extends StatelessWidget {
             Icon(Icons.system_update_rounded, size: 20, color: AppColors.ink),
             const SizedBox(width: 12),
             Text('تحقق من التحديثات', style: TextStyle(color: AppColors.ink)),
+          ]),
+        ),
+        PopupMenuItem(
+          value: 'diag',
+          child: Row(children: [
+            Icon(Icons.bug_report_outlined, size: 20, color: AppColors.ink),
+            const SizedBox(width: 12),
+            Text('تشخيص', style: TextStyle(color: AppColors.ink)),
           ]),
         ),
         PopupMenuItem(

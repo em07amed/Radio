@@ -55,6 +55,20 @@ class MainActivity : AudioServiceActivity() {
                         }
                         result.success(null)
                     }
+                    // Our own process's log, for the in-app diagnostics screen.
+                    "logcat" -> {
+                        Thread {
+                            val text = try {
+                                val p = Runtime.getRuntime().exec(
+                                    arrayOf("logcat", "-d", "-t", "600", "--pid=${android.os.Process.myPid()}")
+                                )
+                                p.inputStream.bufferedReader().readText()
+                            } catch (e: Exception) {
+                                "logcat failed: $e"
+                            }
+                            runOnUiThread { result.success(text) }
+                        }.start()
+                    }
                     else -> result.notImplemented()
                 }
             }

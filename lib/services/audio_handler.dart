@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../models/station.dart';
+import 'diag_log.dart';
 
 /// Runs inside audio_service so playback continues in the background,
 /// with controls in the notification and on the lock screen.
@@ -17,8 +18,10 @@ class RadioAudioHandler extends BaseAudioHandler {
     _player.playbackEventStream.listen(
       (e) => playbackState.add(_transform(e)),
       // Stream dropped mid-play: state goes idle; tapping play reconnects.
-      onError: (Object _, StackTrace __) =>
-          playbackState.add(_transform(_player.playbackEvent)),
+      onError: (Object e, StackTrace __) {
+        DiagLog.add('player error: $e');
+        playbackState.add(_transform(_player.playbackEvent));
+      },
     );
     // Keep the notification's play/pause button in sync.
     _player.playingStream.listen((_) {
@@ -27,6 +30,7 @@ class RadioAudioHandler extends BaseAudioHandler {
   }
 
   Future<void> playStation(Station s) async {
+    DiagLog.add('playStation: ${s.name} ${s.url}');
     current = s;
     mediaItem.add(MediaItem(
       id: s.url,
@@ -40,6 +44,7 @@ class RadioAudioHandler extends BaseAudioHandler {
       // Note: play() completes only when playback stops, so don't await it.
       unawaited(_player.play());
     } on PlayerException catch (e) {
+      DiagLog.add('PlayerException ${e.code}: ${e.message}');
       await _player.stop();
       throw Exception('المحطة دي مش شغالة دلوقتي (${e.code})');
     } on PlayerInterruptedException {
@@ -62,7 +67,13 @@ class RadioAudioHandler extends BaseAudioHandler {
   Future<void> pause() => _player.pause();
 
   @override
+  Future<void> onTaskRemoved() async {
+    DiagLog.add('onTaskRemoved');
+  }
+
+  @override
   Future<void> stop() async {
+    DiagLog.add('stop()');
     cancelSleepTimer();
     await _player.stop();
     await super.stop();

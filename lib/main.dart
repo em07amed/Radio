@@ -1,12 +1,14 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'screens/dial_screen.dart';
 import 'services/audio_handler.dart';
 import 'services/favorites_service.dart';
 import 'services/radio_api.dart';
 import 'services/update_service.dart';
+import 'services/diag_log.dart';
 import 'theme.dart';
 
 late final RadioAudioHandler audioHandler;
@@ -17,11 +19,20 @@ final updateService = UpdateService();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  FlutterError.onError = (d) {
+    DiagLog.add('FlutterError: ${d.exceptionAsString()}');
+    FlutterError.presentError(d);
+  };
+  PlatformDispatcher.instance.onError = (e, st) {
+    DiagLog.add('Uncaught: $e\n$st');
+    return true;
+  };
   await Future.wait([
     favoritesService.init(),
     themeController.init(),
     updateService.init(),
   ]);
+  DiagLog.add('AudioService.init start');
   audioHandler = await AudioService.init(
     builder: () => RadioAudioHandler(),
     config: const AudioServiceConfig(
@@ -34,6 +45,11 @@ Future<void> main() async {
       androidNotificationIcon: 'drawable/ic_stat_radio',
     ),
   );
+  DiagLog.add('AudioService.init done');
+  audioHandler.playbackState
+      .map((s) => '${s.playing} ${s.processingState.name}')
+      .distinct()
+      .listen((s) => DiagLog.add('playbackState: $s'));
   runApp(const RadioApp());
 }
 
