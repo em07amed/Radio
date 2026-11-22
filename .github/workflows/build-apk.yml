@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,9 +37,19 @@ jobs:
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/radio_app
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/radio.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: radio-apk
           path: ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Publish release (download link for the phone)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Radio build ${{ github.run_number }}
+          make_latest: true
+          files: ${{ runner.temp }}/radio_app/build/app/outputs/flutter-apk/radio.apk
