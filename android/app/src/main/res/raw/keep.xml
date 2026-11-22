@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Referenced by name from Dart (audio_service), so stop the resource shrinker removing it. -->
+<!-- These drawables are looked up by name at runtime (audio_service builds the
+     notification/media-session buttons from them), so the release resource
+     shrinker must not remove them. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/ic_stat_radio" />
+    tools:keep="@drawable/ic_stat_radio,@drawable/audio_service_*" />
