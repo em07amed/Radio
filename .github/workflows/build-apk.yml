@@ -34,7 +34,7 @@ jobs:
              "$APP/android/app/src/main/kotlin/com/ezzat/radio_app/MainActivity.kt"
           cp -r android/app/src/main/res/. "$APP/android/app/src/main/res/"
           cd "$APP"
-          flutter pub add just_audio audio_service http shared_preferences cached_network_image package_info_plus url_launcher
+          flutter pub add just_audio audio_service http shared_preferences cached_network_image package_info_plus url_launcher permission_handler
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/radio_app

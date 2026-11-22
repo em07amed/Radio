@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../main.dart';
 import '../models/station.dart';
+import '../services/background_permissions.dart';
 import '../theme.dart';
 import '../widgets/station_tile.dart';
 import 'stations_screen.dart';
@@ -51,7 +52,9 @@ class _DialScreenState extends State<DialScreen>
     // Quietly look for a newer build once per app launch.
     if (!_checkedUpdate) {
       _checkedUpdate = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await BackgroundPermissions.ensure(context);
         if (mounted) updateService.check(context, silent: true);
       });
     }

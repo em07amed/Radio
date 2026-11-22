@@ -29,6 +29,9 @@ Future<void> main() async {
       androidNotificationChannelName: 'تشغيل الراديو',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
+      // Must be a white-on-transparent drawable; the adaptive launcher
+      // icon is rejected as a notification icon on Android 8+.
+      androidNotificationIcon: 'drawable/ic_stat_radio',
     ),
   );
   runApp(const RadioApp());
