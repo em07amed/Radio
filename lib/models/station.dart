@@ -59,6 +59,20 @@ class Station {
     return parts.isEmpty ? country : parts.join('  ·  ');
   }
 
+  /// FM frequency parsed from the name or tags (e.g. "Nogoum FM 100.6"),
+  /// or null when the station doesn't mention one.
+  double? get frequency {
+    final re = RegExp(r'(?<![\d.])(8[7-9]|9\d|10[0-8])[.,](\d)(?!\d)');
+    for (final src in [name, tags]) {
+      final m = re.firstMatch(src);
+      if (m != null) {
+        final f = double.parse('${m.group(1)}.${m.group(2)}');
+        if (f >= 87.5 && f <= 108.0) return f;
+      }
+    }
+    return null;
+  }
+
   @override
   bool operator ==(Object other) => other is Station && other.uuid == uuid;
 
