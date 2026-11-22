@@ -32,13 +32,14 @@ jobs:
           cp android/app/src/main/AndroidManifest.xml "$APP/android/app/src/main/AndroidManifest.xml"
           cp android/app/src/main/kotlin/com/ezzat/radio_app/MainActivity.kt \
              "$APP/android/app/src/main/kotlin/com/ezzat/radio_app/MainActivity.kt"
+          cp -r android/app/src/main/res/. "$APP/android/app/src/main/res/"
           cd "$APP"
-          flutter pub add just_audio audio_service http shared_preferences cached_network_image
+          flutter pub add just_audio audio_service http shared_preferences cached_network_image package_info_plus url_launcher
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/radio_app
         run: |
-          flutter build apk --release
+          flutter build apk --release --build-name=1.0.${{ github.run_number }} --build-number=${{ github.run_number }}
           cp build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/radio.apk
 
       - uses: actions/upload-artifact@v4

@@ -24,7 +24,7 @@ class StationsScreen extends StatelessWidget {
           appBar: AppBar(
             title: const Text('المحطات',
                 style: TextStyle(fontWeight: FontWeight.w800)),
-            bottom: const TabBar(
+            bottom: TabBar(
               indicatorColor: AppColors.accent,
               labelColor: AppColors.ink,
               unselectedLabelColor: AppColors.textDim,
@@ -42,7 +42,7 @@ class StationsScreen extends StatelessWidget {
             ValueListenableBuilder<List<Station>>(
               valueListenable: favoritesService.favorites,
               builder: (_, favs, __) => favs.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text('مفيش محطات مفضلة لسه\nدوس على ♡ جنب أي محطة',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppColors.textDim)))
@@ -65,15 +65,15 @@ InputDecoration _searchDecoration(String hint, IconData icon) =>
       hintText: hint,
       prefixIcon: Icon(icon, color: AppColors.textDim),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.card,
       isDense: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: AppColors.border),
       ),
     );
 

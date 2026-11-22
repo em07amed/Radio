@@ -23,6 +23,7 @@ class DialScreen extends StatefulWidget {
 class _DialScreenState extends State<DialScreen>
     with SingleTickerProviderStateMixin {
   static const double slotPx = 64; // finger distance between two stations
+  static bool _checkedUpdate = false;
 
   List<Station> _stations = [];
   bool _loading = true;
@@ -47,6 +48,13 @@ class _DialScreenState extends State<DialScreen>
   void initState() {
     super.initState();
     _load();
+    // Quietly look for a newer build once per app launch.
+    if (!_checkedUpdate) {
+      _checkedUpdate = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) updateService.check(context, silent: true);
+      });
+    }
     // Keep the dial in sync when a station is picked from the list screen.
     _itemSub = audioHandler.mediaItem.listen((m) {
       final cur = audioHandler.current;
@@ -182,7 +190,7 @@ class _DialScreenState extends State<DialScreen>
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 12, 0),
       child: Row(children: [
-        const Text('Radio',
+        Text('Radio',
             style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w800,
@@ -190,9 +198,10 @@ class _DialScreenState extends State<DialScreen>
                 letterSpacing: -0.5)),
         const Spacer(),
         const SleepButton(),
+        const _MenuButton(),
         IconButton(
           tooltip: 'كل المحطات',
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
               size: 30, color: AppColors.textDim),
           onPressed: _stations.isEmpty
               ? null
@@ -211,12 +220,12 @@ class _DialScreenState extends State<DialScreen>
     if (_error != null) {
       return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.wifi_off_rounded,
+          Icon(Icons.wifi_off_rounded,
               size: 44, color: AppColors.textDim),
           const SizedBox(height: 12),
           Text(_error!,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textDim)),
+              style: TextStyle(color: AppColors.textDim)),
           const SizedBox(height: 12),
           TextButton(
               onPressed: _load,
@@ -255,7 +264,7 @@ class _DialScreenState extends State<DialScreen>
                       : live
                           ? 'LIVE'
                           : '',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.textDim,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -317,18 +326,18 @@ class _DialScreenState extends State<DialScreen>
               child: Container(
                 width: 92,
                 height: 92,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.card,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0x14000000),
+                        color: AppColors.shadow,
                         blurRadius: 24,
                         offset: Offset(0, 10)),
                   ],
                 ),
                 child: loading
-                    ? const Padding(
+                    ? Padding(
                         padding: EdgeInsets.all(32),
                         child: CircularProgressIndicator(
                             strokeWidth: 2.5, color: AppColors.ink),
@@ -363,7 +372,7 @@ class _Readout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final f = station.frequency;
-    const big = TextStyle(
+    final big = TextStyle(
       fontSize: 88,
       fontWeight: FontWeight.w500,
       height: 1.0,
@@ -382,7 +391,7 @@ class _Readout extends StatelessWidget {
               station.name.toUpperCase(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 14,
                   color: AppColors.textDim,
                   fontWeight: FontWeight.w600,
@@ -396,7 +405,7 @@ class _Readout extends StatelessWidget {
                 ? RichText(
                     text: TextSpan(style: big, children: [
                       if (f < 100)
-                        const TextSpan(
+                        TextSpan(
                             text: '0',
                             style: TextStyle(color: AppColors.inkFaded)),
                       TextSpan(text: f.toStringAsFixed(1)),
@@ -425,6 +434,7 @@ class _DialPainter extends CustomPainter {
   final double pos;
   final List<String> labels;
   final double slotPx;
+  final bool dark = AppColors.dark;
   _DialPainter({required this.pos, required this.labels, required this.slotPx});
 
   @override
@@ -447,10 +457,10 @@ class _DialPainter extends CustomPainter {
       c,
       r,
       Paint()
-        ..shader = const LinearGradient(
+        ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.white, AppColors.bg],
+          colors: [AppColors.dialTop, AppColors.bg],
         ).createShader(body),
     );
     canvas.drawCircle(
@@ -465,7 +475,7 @@ class _DialPainter extends CustomPainter {
     // Inner faint "grill" ticks.
     final grill = Paint()
       ..strokeWidth = 1
-      ..color = const Color(0x0F000000);
+      ..color = AppColors.ink.withValues(alpha: 0.06);
     const step = 0.1;
     for (var v = (pos - 6).floorToDouble(); v <= pos + 6; v += step) {
       final a = (v - pos) * slotAngle;
@@ -532,7 +542,7 @@ class _DialPainter extends CustomPainter {
       const Radius.circular(9),
     );
     canvas.drawShadow(Path()..addRRect(knob), Colors.black, 6, false);
-    canvas.drawRRect(knob, Paint()..color = Colors.white);
+    canvas.drawRRect(knob, Paint()..color = AppColors.card);
     canvas.drawRRect(
       knob,
       Paint()
@@ -545,7 +555,8 @@ class _DialPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DialPainter old) =>
-      old.pos != pos || old.labels.length != labels.length;
+      old.pos != pos || old.labels.length != labels.length ||
+      old.dark != dark;
 }
 
 class SleepButton extends StatefulWidget {
@@ -582,6 +593,66 @@ class _SleepButtonState extends State<SleepButton> {
           PopupMenuItem(value: m, child: Text('بعد $m دقيقة')),
         if (active)
           const PopupMenuItem(value: 0, child: Text('إلغاء المؤقت')),
+      ],
+    );
+  }
+}
+
+/// Theme mode + update check + version.
+class _MenuButton extends StatelessWidget {
+  const _MenuButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = themeController.mode.value;
+    PopupMenuItem<String> themeItem(ThemeMode m, IconData icon, String label) =>
+        PopupMenuItem(
+          value: 'theme_${m.name}',
+          child: Row(children: [
+            Icon(icon, size: 20, color: AppColors.ink),
+            const SizedBox(width: 12),
+            Expanded(child: Text(label, style: TextStyle(color: AppColors.ink))),
+            if (mode == m)
+              const Icon(Icons.check_rounded, size: 18, color: AppColors.accent),
+          ]),
+        );
+
+    return PopupMenuButton<String>(
+      tooltip: 'الإعدادات',
+      icon: Icon(Icons.more_vert_rounded, color: AppColors.textDim),
+      onSelected: (v) {
+        switch (v) {
+          case 'theme_system':
+            themeController.set(ThemeMode.system);
+          case 'theme_light':
+            themeController.set(ThemeMode.light);
+          case 'theme_dark':
+            themeController.set(ThemeMode.dark);
+          case 'update':
+            updateService.check(context);
+        }
+      },
+      itemBuilder: (_) => [
+        themeItem(ThemeMode.system, Icons.brightness_auto_rounded, 'زي الموبايل'),
+        themeItem(ThemeMode.light, Icons.light_mode_rounded, 'فاتح'),
+        themeItem(ThemeMode.dark, Icons.dark_mode_rounded, 'غامق'),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'update',
+          child: Row(children: [
+            Icon(Icons.system_update_rounded, size: 20, color: AppColors.ink),
+            const SizedBox(width: 12),
+            Text('تحقق من التحديثات', style: TextStyle(color: AppColors.ink)),
+          ]),
+        ),
+        PopupMenuItem(
+          enabled: false,
+          child: Text(
+            'الإصدار ${updateService.currentVersion ?? '?'} '
+            '(build ${updateService.currentBuild ?? '?'})',
+            style: TextStyle(color: AppColors.textDim, fontSize: 12),
+          ),
+        ),
       ],
     );
   }

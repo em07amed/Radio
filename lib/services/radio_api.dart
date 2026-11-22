@@ -52,14 +52,18 @@ class RadioApi {
     return out;
   }
 
-  Future<List<Station>> byCountry(String code, {int limit = 200}) async {
+  final Map<String, List<Station>> _countryCache = {};
+
+  Future<List<Station>> byCountry(String code,
+      {int limit = 200, bool refresh = false}) async {
+    if (!refresh && _countryCache[code] != null) return _countryCache[code]!;
     final raw = await _get('/json/stations/bycountrycodeexact/$code', {
       'hidebroken': 'true',
       'order': 'clickcount',
       'reverse': 'true',
       'limit': '$limit',
     });
-    return _parse(raw);
+    return _countryCache[code] = _parse(raw);
   }
 
   Future<List<Station>> search(String name, {int limit = 100}) async {

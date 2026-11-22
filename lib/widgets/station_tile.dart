@@ -133,7 +133,7 @@ class StationTile extends StatelessWidget {
                           Text(station.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,
                                   color: AppColors.ink)),
