@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme.dart';
@@ -8,14 +8,16 @@ import '../theme.dart';
 /// notification permission (Android 13+) and no battery optimisation.
 class BackgroundPermissions {
   static const _askedBatteryKey = 'asked_battery_opt';
+  static const _ch = MethodChannel('radio/system');
 
   static Future<void> ensure(BuildContext context) async {
     // Android 13+: without this the player notification can be hidden.
-    if (await Permission.notification.isDenied) {
-      await Permission.notification.request();
+    try {
+      await _ch.invokeMethod('requestNotifications');
+      if (await _ch.invokeMethod<bool>('isIgnoringBattery') ?? true) return;
+    } on PlatformException {
+      return;
     }
-
-    if (await Permission.ignoreBatteryOptimizations.isGranted) return;
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(_askedBatteryKey) ?? false) return;
     await prefs.setBool(_askedBatteryKey, true);
@@ -48,6 +50,6 @@ class BackgroundPermissions {
         ],
       ),
     );
-    if (ok == true) await Permission.ignoreBatteryOptimizations.request();
+    if (ok == true) await _ch.invokeMethod('requestIgnoreBattery');
   }
 }
